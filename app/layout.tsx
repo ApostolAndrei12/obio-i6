@@ -1,55 +1,64 @@
-"use client"
+'use client'
 
-import { useEffect, useRef, useState } from "react"
-import { SparklesCore } from "@/components/ui/sparkles"
+import { useState, useRef, useEffect } from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Loader2, Sparkles } from "lucide-react"
 
 export default function Home() {
-  const [summarizeInput, setSummarizeInput] = useState("")
-  const [isProcessingSummarize, setIsProcessingSummarize] = useState(false)
+  const [inputText, setInputText] = useState("")
+  const [responseText, setResponseText] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const authModalRef = useRef<HTMLDivElement>(null)
-  const upgradeModalRef = useRef<HTMLDivElement>(null)
-  const advancedFeaturesRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
-    }
-  }, [summarizeInput])
+  const handleGenerate = async () => {
+    if (!inputText) return
+    setIsLoading(true)
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input: inputText }),
+    })
+    const data = await res.json()
+    setResponseText(data.result)
+    setIsLoading(false)
+  }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <div className="h-[40rem] w-full bg-black flex flex-col items-center justify-center overflow-hidden rounded-md">
-        <div className="w-full absolute inset-0 h-screen">
-          <SparklesCore
-            background="black"
-            minSize={0.4}
-            maxSize={1}
-            particleDensity={1200}
-            className="w-full h-full"
-            particleColor="#FFFFFF"
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
+      <div className="w-full max-w-2xl space-y-6">
+        <h1 className="text-4xl font-bold text-center">Welcome to OBIO I6</h1>
+        <div className="space-y-2">
+          <Label htmlFor="inputText">Enter your prompt</Label>
+          <Textarea
+            id="inputText"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Type something..."
+            className="min-h-[100px]"
           />
         </div>
-        <h1 className="md:text-7xl text-4xl lg:text-9xl font-bold relative text-white">
-          Obio.ai
-        </h1>
-        <p className="text-white text-lg mt-4 z-10 relative text-center max-w-xl">
-          Your personal AI companion for self-discovery and better life decisions.
-        </p>
+        <Button onClick={handleGenerate} disabled={isLoading} className="w-full">
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-4 w-4" /> Generate
+            </>
+          )}
+        </Button>
+        {responseText && (
+          <Card>
+            <CardContent className="p-4 whitespace-pre-wrap">
+              {responseText}
+            </CardContent>
+          </Card>
+        )}
       </div>
-
-      {/* Chatbot widget – Biel.ai */}
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/biel-search/dist/biel-search/biel-search.css" />
-      <script type="module" src="https://cdn.jsdelivr.net/npm/biel-search/dist/biel-search/biel-search.esm.js"></script>
-      <biel-button
-        project="rrcrfrnu7r"
-        header-title="Biel.ai Chatbot"
-        button-position="bottom-right"
-        modal-position="sidebar-right"
-        button-style="dark">
-        Ask AI
-      </biel-button>
     </main>
   )
 }
