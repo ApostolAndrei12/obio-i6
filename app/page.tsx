@@ -19,6 +19,12 @@ import { motion } from "framer-motion" // Import motion from framer-motion
 import { AnimatedBackground } from "../components/animated-background"
 import { Brain } from "../components/brain"
 import { Apple, Smartphone } from "lucide-react" // Import Lucide icons
+import { ChatPreviewSection } from "@/components/chat-preview-section"
+import { DifferentiatorSection } from "@/components/differentiator-section"
+import { PricingSection } from "@/components/pricing-section"
+import { Footer } from "@/components/footer"
+import { FloatingNavigation } from "@/components/floating-navigation"
+import { AIChatbot } from "@/components/ai-chatbot"
 
 // Helper function to format AI responses with basic Markdown-like parsing
 const formatAiResponse = (text: string) => {
@@ -141,7 +147,7 @@ export default function App() {
   const [isProcessingDecision, setIsProcessingDecision] = useState(false)
   const [showSummarizeInput, setShowSummarizeInput] = useState(false)
   const [summarizeInput, setSummarizeInput] = useState("")
-  const [isProcessingSummarize, setIsProcessingSummarize] = useState(false)
+  const [isProcessingSummarize, setIsProcessingSummarize = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null) // Ref for auto-scrolling chat
   const authModalRef = useRef<HTMLDivElement>(null) // Ref for auth modal to close on outside click
@@ -797,6 +803,7 @@ export default function App() {
         result.candidates[0].content.parts &&
         result.candidates[0].content.parts.length > 0
       ) {
+```text
         aiResponseText = result.candidates[0].content.parts[0].text
       } else if (result.error) {
         aiResponseText = `Error from AI: ${result.error.message}`
@@ -1457,7 +1464,7 @@ export default function App() {
               </div>
             </li>
             <li className="flex items-start gap-3 animate-fade-in-up animation-delay-900">
-              <div className="text-pink-400 flex-shrink-0 mt-1">🚀</div>
+              <div className="text-pink-400 flex-shrink-0 mt-1<div>🚀</div>
               <div>
                 <span className="font-medium text-white">Unlock Your True Potential:</span> This foundational assessment
                 provides unparalleled clarity and self-discovery, transforming your future.
@@ -1744,6 +1751,7 @@ export default function App() {
           </div>
         </div>
       )}
+      <AIChatbot />
     </div>
   )
 }
