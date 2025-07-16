@@ -340,98 +340,81 @@ export default function App() {
 
   // Handle sending a message
   const handleSendMessage = async () => {
-    // Ensure user is authenticated and db is ready
-    if (inputValue.trim() === "" || !auth || !auth.currentUser || !db) return
+    // Allow both authenticated and anonymous users to chat
+    if (inputValue.trim() === "") return
 
-    const currentAuthenticatedUserId = auth.currentUser.uid // Get UID directly from auth
     const userMessage = {
       type: "user",
       text: inputValue.trim(),
-      timestamp: serverTimestamp(),
-      userId: currentAuthenticatedUserId, // Use the direct UID
+      timestamp: new Date(),
+      userId: user?.uid || "anonymous",
     }
 
     setMessages((prev) => [...prev, userMessage])
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }) // Scroll after user message
-    setInputValue("") // Clear input field
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    setInputValue("")
     setIsTyping(true)
 
     try {
-      // Save user message to Firestore using the direct UID
-      await addDoc(
-        collection(
-          db,
-          `artifacts/${process.env.NEXT_PUBLIC_FIREBASE_APP_ID}/users/${currentAuthenticatedUserId}/chatHistory`,
-        ),
-        userMessage,
-      )
-
-      // Build chat history for Gemini API
-      const chatHistoryForGemini = messages.map((msg) => ({
-        role: msg.type === "user" ? "user" : "model",
-        parts: [{ text: msg.text }],
-      }))
-      chatHistoryForGemini.push({ role: "user", parts: [{ text: userMessage.text }] })
-
-      // Personality prompt for Obio.ai - enhanced for empathy and memory
-      const personaPrompt = `You are Obio.ai, a deeply empathetic, intelligent, and highly personalized AI assistant. You remember all past conversations and the user's emotional state, relationships, and personal details (like names of friends/family). Your goal is to provide warm, practical, and emotionally supportive advice for ANY life situation, from career to relationships, mental well-being, and personal growth. When the user says "I broke up with Gabi," respond with genuine empathy and practical advice, remembering their name and showing deep concern for their well-being, suggesting they reach out to their mom Veronica (if that's a known contact from previous chat) and offering comforting words. Always be supportive, remember context, and offer actionable steps or comforting words that feel like they come from a trusted friend. You are the future of personal AI, a true lifelong ally.`
-
-      // Gemini API call
-      const payload = {
-        contents: [{ role: "user", parts: [{ text: personaPrompt }] }, ...chatHistoryForGemini],
-        generationConfig: {
-          temperature: 0.7, // Adjust for creativity
-          topP: 0.95,
-          topK: 40,
-        },
+      // Save to Firestore only if user is authenticated and db is available
+      if (auth && auth.currentUser && !auth.currentUser.isAnonymous && db) {
+        await addDoc(
+          collection(
+            db,
+            `artifacts/${process.env.NEXT_PUBLIC_FIREBASE_APP_ID}/users/${auth.currentUser.uid}/chatHistory`,
+          ),
+          userMessage,
+        )
       }
 
-      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY // Use environment variable
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
-
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      // Call our new chat API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messages.concat(userMessage)
+        }),
       })
 
-      const result = await response.json()
-      let aiResponseText = "I'm sorry, I couldn't generate a response at this time."
-      if (
-        result.candidates &&
-        result.candidates.length > 0 &&
-        result.candidates[0].content &&
-        result.candidates[0].content.parts &&
-        result.candidates[0].content.parts.length > 0
-      ) {
-        aiResponseText = result.candidates[0].content.parts[0].text
-      } else if (result.error) {
-        aiResponseText = `Error from AI: ${result.error.message}`
-        console.error("Gemini API error:", result.error)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get AI response')
       }
 
       const aiMessage = {
         type: "ai",
-        text: aiResponseText,
-        timestamp: serverTimestamp(),
-        userId: "Obio.ai", // AI's ID
+        text: data.response,
+        timestamp: new Date(),
+        userId: "Obio.ai",
       }
 
       setMessages((prev) => [...prev, aiMessage])
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }) // Scroll after AI message
-      setIsTyping(false)
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
 
-      // Save AI message to Firestore
-      await addDoc(
-        collection(
-          db,
-          `artifacts/${process.env.NEXT_PUBLIC_FIREBASE_APP_ID}/users/${currentAuthenticatedUserId}/chatHistory`,
-        ),
-        aiMessage,
-      )
-    } catch (error) {
+      // Save AI response to Firestore only if user is authenticated
+      if (auth && auth.currentUser && !auth.currentUser.isAnonymous && db) {
+        await addDoc(
+          collection(
+            db,
+            `artifacts/${process.env.NEXT_PUBLIC_FIREBASE_APP_ID}/users/${auth.currentUser.uid}/chatHistory`,
+          ),
+          aiMessage,
+        )
+      }
+
+    } catch (error: any) {
       console.error("Error sending message or getting AI response:", error)
-      setMessages((prev) => [...prev, { type: "ai", text: "Oops! Something went wrong. Please try again." }])
+      const errorMessage = error.message || "Oops! Something went wrong. Please try again."
+      setMessages((prev) => [...prev, { 
+        type: "ai", 
+        text: errorMessage,
+        timestamp: new Date(),
+        userId: "Obio.ai"
+      }])
+    } finally {
       setIsTyping(false)
     }
   }
@@ -1412,19 +1395,19 @@ export default function App() {
           <div className="flex items-center glassmorphic-card p-1.5 rounded-full border-purple-500 border-opacity-30">
             <input
               type="text"
-              placeholder={authReady && user && user.isAnonymous ? "Sign in to chat..." : "Type your message..."}
+              placeholder="Type your message..."
               className="flex-grow bg-transparent outline-none text-white px-3 py-2 placeholder-gray-500"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => {
-                if (e.key === "Enter" && !isTyping && authReady && !user?.isAnonymous) handleSendMessage()
+                if (e.key === "Enter" && !isTyping) handleSendMessage()
               }}
-              disabled={isTyping || (authReady && user && user.isAnonymous)}
+              disabled={isTyping}
             />
             <button
               onClick={handleSendMessage}
               className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center ml-2 shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
-              disabled={isTyping || (authReady && user && user.isAnonymous)}
+              disabled={isTyping}
             >
               {/* Send icon */}
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -1436,20 +1419,11 @@ export default function App() {
 
         {authReady && user && user.isAnonymous && (
           <p className="text-gray-400 mt-6 animate-fade-in-up animation-delay-500">
+            Chat freely as a guest, or{" "}
             <button onClick={() => setShowAuthModal(true)} className="text-purple-400 hover:underline">
-              Sign in
+              sign in
             </button>{" "}
-            or{" "}
-            <button
-              onClick={() => {
-                setShowAuthModal(true)
-                setIsLogin(false)
-              }}
-              className="text-purple-400 hover:underline"
-            >
-              sign up
-            </button>{" "}
-            to save your conversations and unlock full features.
+            to save your conversations and unlock advanced features.
           </p>
         )}
       </section>
