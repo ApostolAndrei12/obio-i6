@@ -14,11 +14,11 @@ import {
 } from "firebase/auth"
 import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore"
 import { motion } from "framer-motion" // Import motion from framer-motion
-import { ArrowRight, Brain, Apple, Smartphone } from "lucide-react" // Import Lucide icons
 
 // Add the import for AnimatedBackground
 import { AnimatedBackground } from "../components/animated-background"
-import { Play } from "lucide-react"
+import { Brain } from "../components/brain"
+import { Apple, Smartphone } from "lucide-react" // Import Lucide icons
 
 // Helper function to format AI responses with basic Markdown-like parsing
 const formatAiResponse = (text: string) => {
@@ -777,7 +777,6 @@ export default function App() {
       text: `Summarize this text: ${summarizeInput.trim()}`,
       timestamp: serverTimestamp(),
       userId: currentAuthenticatedUserId,
-    ```python
     }
     setMessages((prev) => [...prev, userSummarizeMessage])
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }) // Scroll after user message
@@ -961,7 +960,7 @@ export default function App() {
         {Array.from({ length: 20 }).map(
           (
             _,
-            i // Reduced number of sparkles
+            i, // Reduced number of sparkles
           ) => (
             <div
               key={i}
@@ -1093,38 +1092,27 @@ export default function App() {
           animate="visible"
           className="relative z-10 pt-20 flex flex-col items-center"
         >
-          <motion.h1
+          <motion.h2
             variants={fadeInVariants}
-            className="font-urbanist text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"
+            className="font-urbanist text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"
           >
-            Obio.ai – The AI That Knows You
+            Obio.ai
+          </motion.h2>
+          <motion.h1
+            variants={typingVariants}
+            className="font-urbanist text-5xl md:text-7xl lg:text-8xl font-extrabold leading-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 drop-shadow-lg py-2"
+            style={{ display: "inline-block" }} // Important for clipPath to work
+          >
+            Your Mind. Amplified by AI.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-lg md:text-xl lg:text-2xl mb-10 max-w-4xl text-center font-medium"
-            style={{ color: '#A78BFA' }}
+            className="text-lg md:text-xl lg:text-2xl text-gray-300 mb-10 max-w-3xl text-center"
           >
-            Not just smart. Emotionally intelligent. Obio listens, remembers, and helps you grow.
+            Discover yourself. Make better life decisions.
           </motion.p>
-          <motion.div
-            variants={fadeInVariants}
-            className="flex flex-col items-center justify-center mb-16"
-          >
-            <button
-              onClick={() => handleButtonClick("Start Assessment")}
-              className="group relative px-10 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-full shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 text-lg mb-2"
-            >
-              <span className="flex items-center gap-2">
-                Start Your Psychological Profile
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </button>
-            <p className="text-sm text-gray-400 font-medium">
-              (Takes less than 2 minutes)
-            </p>
-          </motion.div>
         </motion.div>
 
         {/* Main Chat Section - The Heart of Obio.ai (Moved Here) */}
@@ -1460,7 +1448,8 @@ export default function App() {
               className="text-purple-400 hover:underline"
             >
               sign up
-            </button>{" "}to save your conversations and unlock full features.
+            </button>{" "}
+            to save your conversations and unlock full features.
           </p>
         )}
       </section>
