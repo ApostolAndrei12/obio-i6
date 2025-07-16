@@ -1106,7 +1106,7 @@ export default function App() {
             Your Mind. Amplified by AI.
           </motion.h1>
           <motion.p
-            variants={flickerVariants}
+            variants={fadeInVariants}
             className="text-lg md:text-xl lg:text-2xl text-gray-300 mb-10 max-w-3xl text-center"
           >
             Discover yourself. Make better life decisions.
