@@ -1093,7 +1093,7 @@ export default function App() {
           className="relative z-10 pt-20 flex flex-col items-center"
         >
           <motion.h2
-            variants={flickerVariants}
+            variants={fadeInVariants}
             className="font-urbanist text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-gradient-obio"
           >
             Obio.ai
