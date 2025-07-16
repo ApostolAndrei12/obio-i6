@@ -1,55 +1,55 @@
-import type React from "react"
-import "./globals.css"
-import type { Metadata } from "next"
-import { Urbanist, Inter } from "next/font/google"
+"use client"
 
-const urbanist = Urbanist({
-  subsets: ["latin"],
-  variable: "--font-urbanist",
-  display: "swap",
-})
+import { useEffect, useRef, useState } from "react"
+import { SparklesCore } from "@/components/ui/sparkles"
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-})
+export default function Home() {
+  const [summarizeInput, setSummarizeInput] = useState("")
+  const [isProcessingSummarize, setIsProcessingSummarize] = useState(false)
 
-export const metadata: Metadata = {
-  title: "Obio.ai - The AI That Grows With You",
-  description: "Your personal AI companion for self-discovery and better life decisions.",
-  generator: 'v0.dev'
-}
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const authModalRef = useRef<HTMLDivElement>(null)
+  const upgradeModalRef = useRef<HTMLDivElement>(null)
+  const advancedFeaturesRef = useRef<HTMLDivElement>(null)
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [summarizeInput])
+
   return (
-    <html lang="en" className={`${urbanist.variable} ${inter.variable}`}>
-      <head>
-        {/* Încarcă stilurile și scripturile widgetului în head */}
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/biel-search/dist/biel-search/biel-search.css"
-        />
-        <script type="module" src="https://cdn.jsdelivr.net/npm/biel-search/dist/biel-search/biel-search.esm.js" />
-      </head>
-      <body>
-        {children}
+    <main className="flex min-h-screen flex-col items-center justify-center">
+      <div className="h-[40rem] w-full bg-black flex flex-col items-center justify-center overflow-hidden rounded-md">
+        <div className="w-full absolute inset-0 h-screen">
+          <SparklesCore
+            background="black"
+            minSize={0.4}
+            maxSize={1}
+            particleDensity={1200}
+            className="w-full h-full"
+            particleColor="#FFFFFF"
+          />
+        </div>
+        <h1 className="md:text-7xl text-4xl lg:text-9xl font-bold relative text-white">
+          Obio.ai
+        </h1>
+        <p className="text-white text-lg mt-4 z-10 relative text-center max-w-xl">
+          Your personal AI companion for self-discovery and better life decisions.
+        </p>
+      </div>
 
-        {/* Widget Biel.ai Chatbot */}
-        <biel-button
-          project="rrcrfrnu7r"
-          header-title="Biel.ai Chatbot"
-          button-position="bottom-right"
-          modal-position="sidebar-right"
-          button-style="dark"
-        >
-          Ask AI
-        </biel-button>
-      </body>
-    </html>
+      {/* Chatbot widget – Biel.ai */}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/biel-search/dist/biel-search/biel-search.css" />
+      <script type="module" src="https://cdn.jsdelivr.net/npm/biel-search/dist/biel-search/biel-search.esm.js"></script>
+      <biel-button
+        project="rrcrfrnu7r"
+        header-title="Biel.ai Chatbot"
+        button-position="bottom-right"
+        modal-position="sidebar-right"
+        button-style="dark">
+        Ask AI
+      </biel-button>
+    </main>
   )
 }
