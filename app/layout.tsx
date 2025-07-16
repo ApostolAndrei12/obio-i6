@@ -1,64 +1,34 @@
-'use client'
+import type React from "react"
+import "./globals.css"
+import type { Metadata } from "next"
+import { Urbanist, Inter } from "next/font/google"
 
-import { useState, useRef, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Loader2, Sparkles } from "lucide-react"
+const urbanist = Urbanist({
+  subsets: ["latin"],
+  variable: "--font-urbanist",
+  display: "swap",
+})
 
-export default function Home() {
-  const [inputText, setInputText] = useState("")
-  const [responseText, setResponseText] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
 
-  const handleGenerate = async () => {
-    if (!inputText) return
-    setIsLoading(true)
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input: inputText }),
-    })
-    const data = await res.json()
-    setResponseText(data.result)
-    setIsLoading(false)
-  }
+export const metadata: Metadata = {
+  title: "Obio.ai - The AI That Grows With You",
+  description: "Your personal AI companion for self-discovery and better life decisions.",
+    generator: 'v0.dev'
+}
 
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
-      <div className="w-full max-w-2xl space-y-6">
-        <h1 className="text-4xl font-bold text-center">Welcome to OBIO I6</h1>
-        <div className="space-y-2">
-          <Label htmlFor="inputText">Enter your prompt</Label>
-          <Textarea
-            id="inputText"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Type something..."
-            className="min-h-[100px]"
-          />
-        </div>
-        <Button onClick={handleGenerate} disabled={isLoading} className="w-full">
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-4 w-4" /> Generate
-            </>
-          )}
-        </Button>
-        {responseText && (
-          <Card>
-            <CardContent className="p-4 whitespace-pre-wrap">
-              {responseText}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </main>
+    <html lang="en" className={`${urbanist.variable} ${inter.variable}`}>
+      <body>{children}</body>
+    </html>
   )
 }
