@@ -164,16 +164,14 @@ export default function App() {
     },
   }
 
-  const flickerVariants = {
-    hidden: { opacity: 0.7, scale: 0.98 },
+  const fadeInVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
     visible: {
-      opacity: [0.7, 1, 0.7], // Flicker effect
-      scale: [0.98, 1, 0.98],
+      opacity: 1,
+      scale: 1,
       transition: {
-        duration: 2.5,
-        ease: "easeInOut",
-        repeat: Number.POSITIVE_INFINITY,
-        repeatType: "reverse",
+        duration: 1.2,
+        ease: "easeOut",
       },
     },
   }
